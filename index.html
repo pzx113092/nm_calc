@@ -612,13 +612,21 @@
           .addEventListener("click", () => deleteContainer(container.id));
 
         card.querySelectorAll("[data-property]").forEach(input => {
-          input.addEventListener("input", event => {
-            const property = event.target.dataset.property;
-            updateContainer(container.id, property, event.target.value);
+        const property = input.dataset.property;
+
+        // Update the object while typing, but do not rebuild the DOM.
+        input.addEventListener("input", event => {
+            const currentContainer = containers.find(
+              item => item.id === container.id
+            );
+
+            if (currentContainer) {
+              currentContainer[property] = event.target.value;
+            }
           });
 
+          // Recalculate and rerender after editing is finished.
           input.addEventListener("change", event => {
-            const property = event.target.dataset.property;
             updateContainer(container.id, property, event.target.value);
           });
         });
@@ -674,7 +682,12 @@
       render();
     });
 
-    globalTargetAmount.addEventListener("input", render);
+    globalTargetAmount.addEventListener("input", () => {
+  // Do not call render while typing.
+  // The current value is read directly by getTargetActivityBq().
+    });
+
+    globalTargetAmount.addEventListener("change", render);
     globalTargetUnit.addEventListener("change", render);
 
     // Update current time and results at least once per minute.
